@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    // File Layout
+    "rootDir": "./src",
+    "outDir": "./dist", //dist aafani create hunxa
+
+    "module": "commonjs",
+    "target": "es2020",  //es2020 better version
+    "types": [],
+    
+    "strict": true,
+    "skipLibCheck": true,   //nodemodules ma check garni haina
+    "esModuleInterop": true  
+  },
+  "include": ["src"]
+}
