@@ -13,7 +13,7 @@ app.use(express.json({limit:"10mb"})
 
 // ! helth route 
 
-app.use("/", (req:Request,res:Response)=>{
+app.get("/", (req:Request,res:Response)=>{
     res.status(200).json({
         message: "Server is up and running",
         success: true,

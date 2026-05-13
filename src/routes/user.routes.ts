@@ -1,10 +1,11 @@
 import express from "express";
-import { getAll } from "../controllers/user.controller";
+import { getAll, getById } from "../controllers/user.controller";
 
 const router = express.Router();
 
 // !get all
 router.get("/",getAll);
+router.get("/:id", getById);
 
 
 // !get by id
