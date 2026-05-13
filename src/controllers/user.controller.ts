@@ -47,6 +47,7 @@ export  const getById = async (
         if(!user) {
             const error:any = new Error("User not found");
             error.statusCode= 400;
+            error.status="fail";
             throw error;
 
         }
@@ -60,7 +61,7 @@ export  const getById = async (
 } catch (error: any) {
     next({
       message: error?.message || " Something went wrong",
-      status: "error",
+      status: "success",
       success: false,
       data: null,
       statusCode: error?.statusCode || 500,

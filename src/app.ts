@@ -1,6 +1,6 @@
 import express,{Request, Response} from "express";
 import userRoutes from "./routes/user.routes";
-
+import {errorHandler} from "express"
 const app = express();
 
 
@@ -23,5 +23,6 @@ app.get("/", (req:Request,res:Response)=>{
 // !using routes
 
 app.use("/api/v1/users",userRoutes);
+app.use(error);
 
 export default app;
