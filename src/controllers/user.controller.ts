@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import User from "../models/user.model";
-// get all users
 
+// get all users
 export const getAll = async (
   req: Request,
   res: Response,
@@ -43,6 +43,7 @@ export  const getById = async (
         const {id} = req.params;
         // db query
         const user = await User.findOne({_id:id});
+
         // user not found
         if(!user) {
             const error:any = new Error("User not found");
@@ -51,9 +52,10 @@ export  const getById = async (
             throw error;
 
         }
+
         // success respone
         res.status(200).json({
-        message: ` Users${id}  fetched`,
+        message: ` Users ${id}  fetched`,
       status: "success",
       success: true,
       data: user,
