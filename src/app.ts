@@ -32,7 +32,8 @@ app.get("/", (req:Request,res:Response)=>{
 // !using routes
 
 app.use("/api/v1/users",userRoutes);
-app.use("/api/v1/users",authRoutes);
+app.use("/api/v1/auth",authRoutes);
+
 
 // !error handler
 app.use(errorHandler);

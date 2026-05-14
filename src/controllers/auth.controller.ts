@@ -54,7 +54,63 @@ export const register = async (
   }
 };
 
+
 //! login
+export const login = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, password } = req.body;
+    if (!email) {
+      const error: any = new Error("email is required");
+      error.statusCode = 400;
+      error.status = "fail";
+      throw error;
+    }
+    if (!password) {
+      const error: any = new Error("password is required");
+      error.statusCode = 400;
+      error.status = "fail";
+      throw error;
+    }
+const user = await User.findOne({ email: email});
+    if (!user) {
+      const error: any = new Error("email or password does not matched");
+      error.statusCode = 400;
+      error.status = "fail";
+      throw error;
+    }
+
+    const isPasswordMatched = password ===user.password;
+    if(!isPasswordMatched) {
+      const error: any = new Error("email or password does not matched");
+      error.statusCode = 400;
+      error.status = "fail";
+      throw error;
+    }
+// success respones
+    res.status(201).json({
+      message:"Login suucess",
+      data: user,
+      status:"success",
+      success: true
+    })
+    
+
+    }catch (error:any){
+      next({
+      message: error?.message || "Something went wrong",
+      status: error?.status || "error",
+      success: false,
+      data: null,
+      statusCode: error?.statusCode || 500,
+    });
+    }
+
+  };
+
 
 //! update profile
 
