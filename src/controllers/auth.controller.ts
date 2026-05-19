@@ -1,118 +1,95 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, RequestHandler, Response } from "express";
 import User from "../models/user.model";
+import AppError from "../utils/appError.utils";
+import { sendResponse } from "../utils/sendResponse.utils";
+import { catchAsync } from "../utils/catchAsync.utils";
+import { comparePassword, hashPassword } from "../utils/bcrypt.utils";
+import { generateJwtToken } from "../utils/jwt.utils";
 
 //! register
-export const register = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const { full_name, email, password, phone } = req.body;
-    if (!full_name) {
-      const error: any = new Error("full_name is required");
-      error.statusCode = 400;
-      error.status = "fail";
-      throw error;
-    }
-    if (!email) {
-      const error: any = new Error("email is required");
-      error.statusCode = 400;
-      error.status = "fail";
-      throw error;
-    }
-    if (!password) {
-      const error: any = new Error("password is required");
-      error.statusCode = 400;
-      error.status = "fail";
-      throw error;
-    }
-
-    //* create User instance
-    const user = new User({ full_name, email, password, phone });
-
-    //! hanlde profile image
-
-    //* save user
-    await user.save();
-
-    //* success response
-    res.status(201).json({
-      message: "Account created",
-      data: user,
-      success: true,
-      status: "success",
-    });
-  } catch (error: any) {
-    next({
-      message: error?.message || "Something went wrong",
-      status: error?.status || "error",
-      success: false,
-      data: null,
-      statusCode: error?.statusCode || 500,
-    });
+export const register = catchAsync(async (req: Request, res: Response) => {
+  const { full_name, email, password, phone } = req.body;
+  if (!full_name) {
+    throw new AppError("full name is required", 400);
   }
-};
+  if (!email) {
+    throw new AppError("email is required", 400);
+  }
+  if (!password) {
+    throw new AppError("password is required", 400);
+  }
 
+  //* create User instance
+  const user = new User({ full_name, email, phone });
+
+  //! hash password
+  const hash = await hashPassword(password);
+  user.password = hash;
+
+  //! hanlde profile image
+
+  //* save user
+  await user.save();
+
+  //* success response
+  sendResponse(res, {
+    message: "Account created",
+    data: user,
+    statusCode: 201,
+  });
+});
 
 //! login
-export const login = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { email, password } = req.body;
-    if (!email) {
-      const error: any = new Error("email is required");
-      error.statusCode = 400;
-      error.status = "fail";
-      throw error;
-    }
-    if (!password) {
-      const error: any = new Error("password is required");
-      error.statusCode = 400;
-      error.status = "fail";
-      throw error;
-    }
-const user = await User.findOne({ email: email});
-    if (!user) {
-      const error: any = new Error("email or password does not matched");
-      error.statusCode = 400;
-      error.status = "fail";
-      throw error;
-    }
+export const login = catchAsync(async (req: Request, res: Response) => {
+  //* login
+  //* email password <- req.body
+  const { email, password } = req.body;
 
-    const isPasswordMatched = password ===user.password;
-    if(!isPasswordMatched) {
-      const error: any = new Error("email or password does not matched");
-      error.statusCode = 400;
-      error.status = "fail";
-      throw error;
-    }
-// success respones
-    res.status(201).json({
-      message:"Login suucess",
-      data: user,
-      status:"success",
-      success: true
-    })
-    
+  if (!email) {
+    throw new AppError("email is required", 400);
+  }
+  if (!password) {
+    throw new AppError("password is required", 400);
+  }
+  //* find user by email
+  const user = await User.findOne({ email: email });
+  if (!user) {
+    throw new AppError("email or password does not matched", 400);
+  }
+  //*  compare password
+  // const isPasswordMatched = password === user.password;
+  const isPasswordMatched = await comparePassword(password, users.password);
 
-    }catch (error:any){
-      next({
-      message: error?.message || "Something went wrong",
-      status: error?.status || "error",
-      success: false,
-      data: null,
-      statusCode: error?.statusCode || 500,
-    });
-    }
+  if (!isPasswordMatched) {
+    throw new AppError("email or password does not matched", 400);
+  }
 
+  //todo: generate access token -> jwt
+  const payload = {
+    _id: user._id,
+    full_name: user.full_name,
+    email: user.email,
+    role: user.role,
   };
+  const access_token = generateJwtToken(payload);
 
+  //* success response
+  sendResponse(res, {
+    message: "Login success",
+    data: {
+      user,
+      access_token,
+    },
+    statusCode: 201,
+  });
+});
 
 //! update profile
+const update = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    // try logic
+  },
+);
 
 //! get profile
 
