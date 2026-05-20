@@ -58,7 +58,7 @@ export const login = catchAsync(async (req: Request, res: Response) => {
   }
   //*  compare password
   // const isPasswordMatched = password === user.password;
-  const isPasswordMatched = await comparePassword(password, users.password);
+  const isPasswordMatched = await comparePassword(password, user.password);
 
   if (!isPasswordMatched) {
     throw new AppError("email or password does not matched", 400);

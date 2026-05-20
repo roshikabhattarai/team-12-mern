@@ -1,39 +1,56 @@
 import mongoose from "mongoose";
+import { Role } from "../types/enum.types";
 
-const userSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema(
+  {
     full_name: {
-        type: String,
-        require: [true, "full name is required"],
-        minLength: [3,"Name must be 3 char. long"],
-        trim: true,
+      type: String,
+      required: [true, "full_name is required"],
+      minLength: [3, "Name must be 3 char. long"],
+      trim: true,
     },
-    email:{
-       type: String,
-        require: [true, "email is required"],
-        minLength: [3,"user already exit with provided email"],
-        trim: true, 
+    email: {
+      type: String,
+      required: [true, "email is required"],
+      unique: [true, "user already exists with provided email"],
+      trim: true,
     },
-    password:{
-        type: String,
-        require: [true, "password is required"],
-        minLength: [3,"password must be 6 char. long"],
+    password: {
+      type: String,
+      required: [true, "password is required"],
+      minLength: [6, "password must be 6 char. long"],
+    },
+    phone: {
+      type: String,
 
-    }, 
-    phone:{
-        type: String,
     },
 
-    // role enum()
-    role:{
+    // 
+    //! role
+    role: {
+      type: String,
+      enum: Object.values(Role),
+      default: Role.USER,
+    },
+    //! profile_image
 
-        type: String,
-        enum: ["ADMIN", "USER", "SUPER_ADMIN"],
-        default:"USER",
-    }
-},
-    { timestamps: true},
+    // ! profile_image:{path:'',public_id:''}
+		profile_image:{
+			type:{
+				path:{
+					type:String,
+					required :true,
+				},
+				public_id:{
+					type:String,
+					requird:true,
+				},
+			},
+		},
+  },
+  { timestamps: true },
 );
 
-// !model
-const User = mongoose.model("user",userSchema);
+//! model
+const User = mongoose.model("user", userSchema);
 export default User;

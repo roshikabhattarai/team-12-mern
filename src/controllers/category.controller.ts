@@ -1,5 +1,5 @@
 import { NextFunction,Request,Response } from "express";
-import Category from "../models/category.models";
+import Category from "../models/category.model";
 import { catchAsync } from "../utils/catchAsync.utils";
 import AppError from "../utils/appError.utils";
 import { sendResponse } from "../utils/sendResponse.utils";
