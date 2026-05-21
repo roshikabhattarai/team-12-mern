@@ -5,10 +5,14 @@ import { sendResponse } from "../utils/sendResponse.utils";
 import { catchAsync } from "../utils/catchAsync.utils";
 import { comparePassword, hashPassword } from "../utils/bcrypt.utils";
 import { generateJwtToken } from "../utils/jwt.utils";
+import { sendFileToCloudinary } from "../utils/cloudinary.utils";
 
 //! register
 export const register = catchAsync(async (req: Request, res: Response) => {
   const { full_name, email, password, phone } = req.body;
+  const image = req.file as any;
+  console.log(image);
+
   if (!full_name) {
     throw new AppError("full name is required", 400);
   }
@@ -27,6 +31,15 @@ export const register = catchAsync(async (req: Request, res: Response) => {
   user.password = hash;
 
   //! hanlde profile image
+  if (image){
+    const{path, public_id}= await sendFileToCloudinary(image,"/profile_image",
+
+    );
+    user.profile_image= {
+      path,
+      public_id,
+    };
+  }
 
   //* save user
   await user.save();

@@ -14,3 +14,4 @@ export const sendResponse = <T>(res: Response, data: TResponse<T>) => {
     success: true,
   });
 };
+export default sendResponse;
