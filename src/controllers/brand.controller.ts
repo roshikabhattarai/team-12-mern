@@ -1,19 +1,15 @@
 import { Request, Response } from "express";
 import Brand from "../models/brand.model";
-import catchAsync from "../utils/catchAsync";
-import AppError from "../utils/appError";
-import sendResponse from "../utils/sendResponse";
+import { catchAsync } from "../utils/catchAsync.utils";
+import AppError  from "../utils/appError.utils";
+import { sendResponse } from "../utils/sendResponse.utils";
 
 // get all
 export const getAll = catchAsync(async (req: Request, res: Response) => {
   const brands = await Brand.find();
 
-  sendResponse(res, {
-    message: "All brands fetched",
-    data: brands,
-    statusCode: 200,
+ 
   });
-});
 
 // get by id
 export const getById = catchAsync(async (req: Request, res: Response) => {

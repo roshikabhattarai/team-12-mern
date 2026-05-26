@@ -3,12 +3,14 @@ import { Role } from "../types/enum.types";
 import mongoose from "mongoose";
 import ENV_CONFIG from "../config/env.config";
 
-type TPayload = {
+export type TPayload = {
   _id: mongoose.Types.ObjectId;
   full_name?: string;
   role: Role;
   email: string;
 };
+
+export type TJwtReturn = { iat: number; exp: number } & TPayload;
 
 //! generate access token
 export const generateJwtToken = (payload: TPayload) => {
@@ -20,6 +22,15 @@ export const generateJwtToken = (payload: TPayload) => {
     return access_token;
   } catch (error) {
     console.log(error);
+    throw error;
+  }
+};
+
+//! verify token
+export const verifyToken = (token: string): TJwtReturn => {
+  try {
+    return jwt.verify(token, ENV_CONFIG.jwt_secret) as TJwtReturn;
+  } catch (error) {
     throw error;
   }
 };

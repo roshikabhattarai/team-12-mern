@@ -1,5 +1,6 @@
 import { Response } from "express";
 
+
 type TResponse<T> = {
   message: string;
   data?: T;

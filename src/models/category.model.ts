@@ -1,40 +1,44 @@
-// name: required
-// description: optional
+import mongoose, { Document } from "mongoose";
 
-import mongoose from "mongoose";
-
-// Category Interface
 interface ICategorySchema extends Document {
   name: string;
   description?: string;
+  image: {
+    path: string;
+    public_id: string;
+  };
 }
 
-// Category Schema
+//* category schema
 const categorySchema = new mongoose.Schema<ICategorySchema>(
   {
     name: {
       type: String,
-      required: true,
-      unique: true,
+      required: [true, "name is required"],
       trim: true,
     },
-
     description: {
       type: String,
-      default: "",
+      trim: true,
+      minLength: [25, "minimum 25 char. is required"],
+    },
+    image: {
+      type: {
+        path: {
+          type: String,
+          required: true,
+        },
+        public_id: {
+          type: String,
+          required: true,
+        },
+      },
+      required: [true, "image is required"],
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true },
 );
 
-// Category Model
-const Category = mongoose.model<ICategorySchema>(
-  "Category",
-  categorySchema
-);
-
+//? model
+const Category = mongoose.model("category", categorySchema);
 export default Category;
-
-// brand ko garni aaja

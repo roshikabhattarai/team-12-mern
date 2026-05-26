@@ -5,14 +5,20 @@ import { sendResponse } from "../utils/sendResponse.utils";
 import { catchAsync } from "../utils/catchAsync.utils";
 import { comparePassword, hashPassword } from "../utils/bcrypt.utils";
 import { generateJwtToken } from "../utils/jwt.utils";
-import { sendFileToCloudinary } from "../utils/cloudinary.utils";
+import { Role } from "../types/enum.types";
+import {
+  deleteFileFromCloudinary,
+  sendFileToCloudinary,
+} from "../utils/cloudinary.utils";
+import ENV_CONFIG from "../config/env.config";
 
+const folder = "/profile_image";
 //! register
 export const register = catchAsync(async (req: Request, res: Response) => {
   const { full_name, email, password, phone } = req.body;
+
   const image = req.file as any;
   console.log(image);
-
   if (!full_name) {
     throw new AppError("full name is required", 400);
   }
@@ -31,11 +37,9 @@ export const register = catchAsync(async (req: Request, res: Response) => {
   user.password = hash;
 
   //! hanlde profile image
-  if (image){
-    const{path, public_id}= await sendFileToCloudinary(image,"/profile_image",
-
-    );
-    user.profile_image= {
+  if (image) {
+    const { path, public_id } = await sendFileToCloudinary(image, folder);
+    user.profile_image = {
       path,
       public_id,
     };
@@ -69,9 +73,11 @@ export const login = catchAsync(async (req: Request, res: Response) => {
   if (!user) {
     throw new AppError("email or password does not matched", 400);
   }
+  console.log(password, user);
   //*  compare password
   // const isPasswordMatched = password === user.password;
   const isPasswordMatched = await comparePassword(password, user.password);
+  console.log(isPasswordMatched);
 
   if (!isPasswordMatched) {
     throw new AppError("email or password does not matched", 400);
@@ -82,9 +88,17 @@ export const login = catchAsync(async (req: Request, res: Response) => {
     _id: user._id,
     full_name: user.full_name,
     email: user.email,
-    role: user.role,
+    role: user.role as Role,
   };
   const access_token = generateJwtToken(payload);
+
+  // *send access_token in cookie   //
+  res.cookie("access_token", access_token, {
+    httpOnly: ENV_CONFIG.node_env === "development" ? false : true,
+    maxAge: parseInt(ENV_CONFIG.cookie_exp ?? "7") * 24 * 60 * 60 * 1000,
+    secure: ENV_CONFIG.node_env === "deveploment" ? false : true,
+    sameSite: ENV_CONFIG.node_env === "development" ? "lax" : "none",
+  });
 
   //* success response
   sendResponse(res, {
@@ -103,7 +117,46 @@ const update = catchAsync(
     // try logic
   },
 );
+export const changeProfilePicture = catchAsync(
+  async (req: Request, res: Response) => {
+    const image = req.file as Express.Multer.File;
+    const { id } = req.params;
+    if (!image) {
+      throw new AppError("profile is required", 404);
+    }
 
+    // find the user
+    const user = await User.findOne({ _id: id });
+    if (!user) {
+      throw new AppError("user account not found", 400);
+    }
+
+    // upload image to clouud
+    const { path, public_id } = await sendFileToCloudinary(image, folder);
+
+    // !delete old image
+    if (user?.profile_image?.public_id) {
+      await deleteFileFromCloudinary(user.profile_image.public_id);
+    }
+    // !assign new image to user
+
+    user.profile_image = {
+      path,
+      public_id,
+    };
+
+    // !save user
+
+    await user.save();
+
+    // !send success reposne
+    sendResponse(res, {
+      message: "profile image updated",
+      data: user,
+      statusCode: 200,
+    });
+  },
+);
 //! get profile
 
 //! change password

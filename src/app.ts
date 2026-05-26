@@ -1,5 +1,6 @@
 import express, { NextFunction, Request, Response } from "express";
 import { errorHandler } from "./middlewares/errorHandler.middleware";
+import cookieParser from "cookie-parser";
 
 //! importing routes
 import routes from "./routes";
@@ -9,6 +10,8 @@ import AppError from "./utils/appError.utils";
 const app = express();
 
 //! using middlewares
+//* cooie parser
+app.use(cookieParser());
 //! body parser
 app.use(express.json({ limit: "10mb" }));
 
@@ -29,6 +32,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   const message = `can not ${req.method} on ${req.url}`;
   throw new AppError(message, 404);
 });
+
 //! error handler
 app.use(errorHandler);
 
