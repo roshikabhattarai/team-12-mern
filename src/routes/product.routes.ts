@@ -1,40 +1,49 @@
-import express from "express";
-
+import { Router } from "express";
 import {
-  getAllProducts,
-  getProductById,
-  createProduct,
-  updateProduct,
-  deleteProduct,
-  getProductsByCategory,
+  create,
+  getAll,
+  getByCategory,
+  getById,
   getFeaturedProducts,
-  getNewArrivals,
+  getNewProducts,
 } from "../controllers/product.controller";
+import { authenticate } from "../middlewares/auth.middlware";
+import { Only_Admins } from "../types/enum.types";
+import { multerUploader } from "../middlewares/multer.middleware";
 
-const router = express.Router();
+const router = Router();
+const upload = multerUploader();
 
-//* get all products
-router.get("/", getAllProducts);
+//? get all
+router.get("/", getAll);
 
-//* get featured products
+//? get by category
+router.get("/category/:id", getByCategory);
+
+//? featured
 router.get("/featured", getFeaturedProducts);
 
-//* get new arrivals
-router.get("/new-arrivals", getNewArrivals);
+//? new arrivals
+router.get("/new-arrivals", getNewProducts);
 
-//* get products by category
-router.get("/category/:category", getProductsByCategory);
+//? get by id
+router.get("/:id", getById);
 
-//* get product by id
-router.get("/:id", getProductById);
-
-//* create product
-router.post("/", createProduct);
-
-//* update product
-router.patch("/:id", updateProduct);
-
-//* delete product
-router.delete("/:id", deleteProduct);
+//? cretae
+router.post(
+  "/",
+  upload.fields([
+    {
+      name: "cover_image",
+      maxCount: 1,
+    },
+    {
+      name: "images",
+      maxCount: 6,
+    },
+  ]),
+  // authenticate(Only_Admins),
+  create,
+);
 
 export default router;
