@@ -8,6 +8,7 @@ import {
   sendFileToCloudinary,
 } from "../utils/cloudinary.utils";
 
+//! cloudinary folder to upload image
 const folder = "/categories";
 
 //! get all
@@ -42,6 +43,7 @@ export const getById = catchAsync(async (req: Request, res: Response) => {
 
 //! create
 export const create = catchAsync(async (req: Request, res: Response) => {
+  console.log(req.body);
   const { name, description } = req.body;
   const image = req.file as Express.Multer.File;
 
@@ -60,7 +62,7 @@ export const create = catchAsync(async (req: Request, res: Response) => {
 
   //! assign image to category
   category.image = {
-    path, 
+    path,
     public_id,
   };
 

@@ -45,7 +45,6 @@ const productSchema = new mongoose.Schema(
             required: true,
           },
         },
-        required: [true, "cover_image is required"],
       },
     ],
     //! category : 6a0afd1dc56c20e218d7fcde  / {}

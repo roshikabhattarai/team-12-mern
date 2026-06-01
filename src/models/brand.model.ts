@@ -1,35 +1,47 @@
-import mongoose  from "mongoose";
+import mongoose, { Document } from "mongoose";
 
-// Brand Interface
-export interface IBrand extends Document {
+// name:req , description:op
+
+interface IBrandSchema extends Document {
   name: string;
   description?: string;
+  logo: {
+    path: string;
+    public_id: string;
+  };
 }
 
-// Brand Schema
-const brandSchema = new mongoose.Schema<IBrand>(
+//? brand schema
+const brandSchema = new mongoose.Schema<IBrandSchema>(
   {
     name: {
       type: String,
-      required: true,
-      unique: true,
+      required: [true, "name is required"],
       trim: true,
     },
-
     description: {
       type: String,
-      default: "",
+      trim: true,
+      minLength: [25, "minimum 25 char. is required"],
+    },
+    //todo: image
+    logo: {
+      type: {
+        path: {
+          type: String,
+          required: true,
+        },
+        public_id: {
+          type: String,
+          required: true,
+        },
+      },
+      required: [true, "image is required"],
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true },
 );
 
-// Brand Model
-const Brand = mongoose.model<IBrand>(
-  "Brand",
-  brandSchema
-);
-
+//? model
+const Brand = mongoose.model("brand", brandSchema);
 export default Brand;

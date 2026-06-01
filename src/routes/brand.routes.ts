@@ -5,7 +5,13 @@ import {
   getById,
   remove,
   update,
-} from "../controllers/category.controller";
+} from "../controllers/brand.controller";
+import { multerUploader } from "../middlewares/multer.middleware";
+import { authenticate } from "../middlewares/auth.middleware";
+import { Only_Admins, Role } from "../types/enum.types";
+
+//multer uploader
+const upload = multerUploader();
 
 const router = express.Router();
 
@@ -16,12 +22,17 @@ router.get("/", getAll);
 router.get("/:id", getById);
 
 //? create
-router.post("/", create);
+router.post(
+  "/",
+  upload.single("logo"),
+  //  authenticate(Only_Admins),
+  create,
+);
 
 //? update
-router.put("/:id", update);
+router.put("/:id", authenticate(Only_Admins), update);
 
 //? delete
-router.delete("/:id", remove);
+router.delete("/:id", authenticate(Only_Admins), remove);
 
 export default router;

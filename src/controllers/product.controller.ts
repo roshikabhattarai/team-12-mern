@@ -5,20 +5,81 @@ import { sendResponse } from "../utils/sendResponse.utils";
 import AppError from "../utils/appError.utils";
 import Category from "../models/category.model";
 import Brand from "../models/brand.model";
-import { sendFileToCloudinary } from "../utils/cloudinary.utils";
+import {
+  deleteFileFromCloudinary,
+  sendFileToCloudinary,
+} from "../utils/cloudinary.utils";
+import mongoose from "mongoose";
+import { getPagination } from "../utils/pagination.utils";
 
 const folder = "/products";
 
 //* get all products
 export const getAll = catchAsync(async (req: Request, res: Response) => {
-  const filter = {};
+  const {
+    query,
+    category,
+    brand,
+    minPrice,
+    maxPrice,
+    limit = "10",
+    page = "1",
+  } = req.query;
+  const filter: mongoose.QueryFilter<any> = {};
+  const perPage = Number(limit); // 10
+  const currPage = Number(page); // 1
+  const skip = (currPage - 1) * perPage;
+  // c_page: 1 , skip: 0 , 1-10
+  // 2 , 10 , 11-20
+  // 3 , 20 , 21-20
 
-  const products = await Product.find(filter);
+  if (query) {
+    filter.$or = [
+      {
+        name: {
+          $regex: query,
+          $options: "i",
+        },
+      },
+      {
+        description: {
+          $regex: query,
+          $options: "i",
+        },
+      },
+    ];
+  }
+
+  if (category) {
+    filter.category = category;
+  }
+
+  if (brand) {
+    filter.brand = brand;
+  }
+
+  //! price filter
+  if (minPrice || maxPrice) {
+    if (minPrice) {
+      filter.price = {
+        $gte: Number(minPrice),
+      };
+    }
+    if (maxPrice) {
+      filter.price = {
+        $lte: Number(maxPrice),
+      };
+    }
+  }
+
+  const products = await Product.find(filter).skip(skip).limit(perPage);
+  const count = await Product.countDocuments(filter);
 
   sendResponse(res, {
     message: "Products fetched",
     statusCode: 200,
     data: products,
+    meta: getPagination(count, perPage, currPage),
   });
 });
 //* get by id
@@ -39,6 +100,7 @@ export const getById = catchAsync(async (req: Request, res: Response) => {
 
 //* create
 export const create = catchAsync(async (req: Request, res: Response) => {
+  console.log(req.body);
   const {
     name,
     description,
@@ -56,7 +118,7 @@ export const create = catchAsync(async (req: Request, res: Response) => {
   };
 
   if (!name || !price || !stock) {
-    throw new AppError("name , price & stock are required", 400);
+    throw new AppError("name, price & stock are required", 400);
   }
 
   if (!category) {
@@ -121,32 +183,36 @@ export const create = catchAsync(async (req: Request, res: Response) => {
 
 //* update
 //* remove
+export const remove = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
 
-export const deleteProduct = async (
-  req: Request,
-  res: Response,
-  
-) => {
-  try {
-    const { id } = req.params;
+  const product = await Product.findOne({ _id: id });
 
-    const deletedProduct = await Product.findByIdAndDelete(id);
-
-    if (!deletedProduct) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Product deleted successfully",
-    });
-  } catch (error) {
-   
+  if (!product) {
+    throw new AppError("Product not found", 404);
   }
-};
+
+  await deleteFileFromCloudinary(product.cover_image.public_id);
+
+  if (product.images && product.images.length > 0) {
+    const promises = product.images.map(
+      async (img: any) => await deleteFileFromCloudinary(img.public_id),
+    );
+
+    await Promise.all(promises);
+  }
+
+  //! delete product
+  await product.deleteOne();
+
+  //! send success response
+  sendResponse(res, {
+    message: `product ${product._id} deleted`,
+    statusCode: 200,
+    data: null,
+  });
+});
+
 //* get by category
 export const getByCategory = catchAsync(async (req: Request, res: Response) => {
   const { categoryId } = req.params;

@@ -14,6 +14,7 @@ const app = express();
 app.use(cookieParser());
 //! body parser
 app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded());
 
 //! helth route
 app.get("/", (req: Request, res: Response) => {

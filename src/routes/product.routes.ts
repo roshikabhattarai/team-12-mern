@@ -7,7 +7,7 @@ import {
   getFeaturedProducts,
   getNewProducts,
 } from "../controllers/product.controller";
-import { authenticate } from "../middlewares/auth.middlware";
+import { authenticate } from "../middlewares/auth.middleware";
 import { Only_Admins } from "../types/enum.types";
 import { multerUploader } from "../middlewares/multer.middleware";
 
